@@ -39,11 +39,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     
     func windowShouldClose(_ sender: NSWindow) -> Bool {
-        print("windowShouldClose")
         if let viewController = sender.contentViewController as? ViewController {
-            viewController.windowClose(self)
+            return viewController.canCloseWindow()
         }
-        return false
+        return true
     }
     
     @IBAction func abrirMenuItem(_ sender: NSMenuItem) {
@@ -80,6 +79,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Encontre o ViewController e chame a ação correspondente
         let viewController = NSApplication.shared.keyWindow?.contentViewController as? ViewController
         viewController?.novo(sender)
+    }
+
+    @IBAction func novaJanelaMenuItem(_ sender: NSMenuItem) {
+        let viewController = NSApplication.shared.keyWindow?.contentViewController as? ViewController
+        viewController?.abrirNovaJanela()
     }    
     
     @IBAction func imprimirMenuItem(_ sender: NSMenuItem) {

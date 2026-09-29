@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B60D4ABD043585EA29C8ED92 /* Win11StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61D55EC9B4183E9A8A759FC /* Win11StatusBarView.swift */; };
 		B622D4B92CE1370D00A4102F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B622D4B82CE1370D00A4102F /* AppDelegate.swift */; };
 		B622D4BB2CE1370D00A4102F /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B622D4BA2CE1370D00A4102F /* ViewController.swift */; };
 		B622D4BD2CE1370F00A4102F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B622D4BC2CE1370F00A4102F /* Assets.xcassets */; };
@@ -14,6 +15,15 @@
 		B622D4CB2CE1371000A4102F /* TcheNotepadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B622D4CA2CE1371000A4102F /* TcheNotepadTests.swift */; };
 		B622D4D52CE1371000A4102F /* TcheNotepadUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B622D4D42CE1371000A4102F /* TcheNotepadUITests.swift */; };
 		B622D4D72CE1371000A4102F /* TcheNotepadUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B622D4D62CE1371000A4102F /* TcheNotepadUITestsLaunchTests.swift */; };
+		B63F7A83036647605E17D7DF /* SettingsSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D1D627A11FA33BEF845D3E /* SettingsSheetView.swift */; };
+		B651C1E750288CD6DE95C89E /* Win11ToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67BC54F435120EC615C032C /* Win11ToolbarView.swift */; };
+		B65694F5D58F665BDD398DD9 /* Win11NotepadContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67B1EB4F528486EB82ABCD1 /* Win11NotepadContainerView.swift */; };
+		B664066FC9045C63179AD923 /* Win11EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C8D3422008322D45838B3D /* Win11EditorView.swift */; };
+		B66E1168646D82BE9C1EBEBA /* DocumentTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = B68A8DC2C41985114741109C /* DocumentTab.swift */; };
+		B68A1708F386699A1CC22E7B /* Win11Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E4F60E415CAB7000EE5C81 /* Win11Theme.swift */; };
+		B6E22EDFFE780101660B45D3 /* Win11FindBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B602DCC0486673D3AE304DF8 /* Win11FindBarView.swift */; };
+		B6E2FB5E7541C53BA28A3EA0 /* Win11TabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E62FB3A9748FDBD527FAA7 /* Win11TabBarView.swift */; };
+		B6E9DB9659A611EE74A73DAB /* EditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6AEDEAF9369087240B8B6B3 /* EditorViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +44,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B602DCC0486673D3AE304DF8 /* Win11FindBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Win11FindBarView.swift; sourceTree = "<group>"; };
+		B61D55EC9B4183E9A8A759FC /* Win11StatusBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Win11StatusBarView.swift; sourceTree = "<group>"; };
 		B622D4B52CE1370D00A4102F /* TcheNotepad.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TcheNotepad.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B622D4B82CE1370D00A4102F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B622D4BA2CE1370D00A4102F /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -47,6 +59,14 @@
 		B622D4D62CE1371000A4102F /* TcheNotepadUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TcheNotepadUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		B64D6EBD2CE4F93E00AF77F7 /* TcheNotepadRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TcheNotepadRelease.entitlements; sourceTree = "<group>"; };
 		B64D6EBE2CE527A500AF77F7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B67B1EB4F528486EB82ABCD1 /* Win11NotepadContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Win11NotepadContainerView.swift; sourceTree = "<group>"; };
+		B67BC54F435120EC615C032C /* Win11ToolbarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Win11ToolbarView.swift; sourceTree = "<group>"; };
+		B68A8DC2C41985114741109C /* DocumentTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTab.swift; sourceTree = "<group>"; };
+		B6AEDEAF9369087240B8B6B3 /* EditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorViewModel.swift; sourceTree = "<group>"; };
+		B6C8D3422008322D45838B3D /* Win11EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Win11EditorView.swift; sourceTree = "<group>"; };
+		B6D1D627A11FA33BEF845D3E /* SettingsSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSheetView.swift; sourceTree = "<group>"; };
+		B6E4F60E415CAB7000EE5C81 /* Win11Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Win11Theme.swift; sourceTree = "<group>"; };
+		B6E62FB3A9748FDBD527FAA7 /* Win11TabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Win11TabBarView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +117,16 @@
 		B622D4B72CE1370D00A4102F /* TcheNotepad */ = {
 			isa = PBXGroup;
 			children = (
+				B68A8DC2C41985114741109C /* DocumentTab.swift */,
+				B6E4F60E415CAB7000EE5C81 /* Win11Theme.swift */,
+				B6AEDEAF9369087240B8B6B3 /* EditorViewModel.swift */,
+				B6E62FB3A9748FDBD527FAA7 /* Win11TabBarView.swift */,
+				B67BC54F435120EC615C032C /* Win11ToolbarView.swift */,
+				B61D55EC9B4183E9A8A759FC /* Win11StatusBarView.swift */,
+				B602DCC0486673D3AE304DF8 /* Win11FindBarView.swift */,
+				B6D1D627A11FA33BEF845D3E /* SettingsSheetView.swift */,
+				B6C8D3422008322D45838B3D /* Win11EditorView.swift */,
+				B67B1EB4F528486EB82ABCD1 /* Win11NotepadContainerView.swift */,
 				B64D6EBE2CE527A500AF77F7 /* Info.plist */,
 				B64D6EBD2CE4F93E00AF77F7 /* TcheNotepadRelease.entitlements */,
 				B622D4B82CE1370D00A4102F /* AppDelegate.swift */,
@@ -255,6 +285,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B66E1168646D82BE9C1EBEBA /* DocumentTab.swift in Sources */,
+				B68A1708F386699A1CC22E7B /* Win11Theme.swift in Sources */,
+				B6E9DB9659A611EE74A73DAB /* EditorViewModel.swift in Sources */,
+				B6E2FB5E7541C53BA28A3EA0 /* Win11TabBarView.swift in Sources */,
+				B651C1E750288CD6DE95C89E /* Win11ToolbarView.swift in Sources */,
+				B60D4ABD043585EA29C8ED92 /* Win11StatusBarView.swift in Sources */,
+				B6E22EDFFE780101660B45D3 /* Win11FindBarView.swift in Sources */,
+				B63F7A83036647605E17D7DF /* SettingsSheetView.swift in Sources */,
+				B664066FC9045C63179AD923 /* Win11EditorView.swift in Sources */,
+				B65694F5D58F665BDD398DD9 /* Win11NotepadContainerView.swift in Sources */,
 				B622D4BB2CE1370D00A4102F /* ViewController.swift in Sources */,
 				B622D4B92CE1370D00A4102F /* AppDelegate.swift in Sources */,
 			);
@@ -431,7 +471,7 @@
 				CODE_SIGN_ENTITLEMENTS = TcheNotepad/TcheNotepad.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 5RUWT8FB6S;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -446,7 +486,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.6;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Vielmond.TcheNotepad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -463,7 +503,7 @@
 				CODE_SIGN_ENTITLEMENTS = TcheNotepad/TcheNotepadRelease.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 5RUWT8FB6S;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -478,7 +518,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.6;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = Vielmond.TcheNotepad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
