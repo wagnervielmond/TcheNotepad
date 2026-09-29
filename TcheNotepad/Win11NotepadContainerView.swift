@@ -71,7 +71,7 @@ struct Win11NotepadContainerView: View {
     
     private func handleFormattingAction(_ type: FormattingType) {
         guard let window = NSApplication.shared.keyWindow,
-              let textView = window.firstResponder as? NSTextView ?? findFirstTextView(in: window.contentView),
+              let textView = findMainDocumentTextView(in: window.contentView),
               let textStorage = textView.textStorage else {
             return
         }
@@ -261,7 +261,7 @@ struct Win11NotepadContainerView: View {
     private func performFind(query: String, isForward: Bool, caseSensitive: Bool) {
         guard !query.isEmpty,
               let window = NSApplication.shared.keyWindow,
-              let textView = window.firstResponder as? NSTextView ?? findFirstTextView(in: window.contentView) else {
+              let textView = findMainDocumentTextView(in: window.contentView) else {
             return
         }
         
@@ -308,41 +308,86 @@ struct Win11NotepadContainerView: View {
     private func performReplace(target: String, replacement: String) {
         guard !target.isEmpty,
               let window = NSApplication.shared.keyWindow,
-              let textView = window.firstResponder as? NSTextView ?? findFirstTextView(in: window.contentView) else {
+              let textView = findMainDocumentTextView(in: window.contentView) else {
             return
         }
         
         let selectedRange = textView.selectedRange()
-        let currentSelectedText = (textView.string as NSString).substring(with: selectedRange)
+        let fullText = textView.string as NSString
+        let selectedText = selectedRange.length > 0 ? fullText.substring(with: selectedRange) : ""
         
-        if currentSelectedText.compare(target, options: viewModel.isCaseSensitive ? [] : .caseInsensitive) == .orderedSame {
+        let isMatch = selectedText.compare(target, options: viewModel.isCaseSensitive ? [] : .caseInsensitive) == .orderedSame
+        
+        if isMatch {
             if textView.shouldChangeText(in: selectedRange, replacementString: replacement) {
                 textView.replaceCharacters(in: selectedRange, with: replacement)
                 textView.didChangeText()
+                textView.setSelectedRange(NSRange(location: selectedRange.location, length: (replacement as NSString).length))
             }
+            if let tab = viewModel.activeTab {
+                tab.text = textView.string
+                tab.attributedText = NSAttributedString(attributedString: textView.attributedString())
+            }
+            // Localiza a próxima ocorrência
             performFind(query: target, isForward: true, caseSensitive: viewModel.isCaseSensitive)
         } else {
+            // Localiza primeiro caso a seleção atual não seja o termo
             performFind(query: target, isForward: true, caseSensitive: viewModel.isCaseSensitive)
         }
     }
     
     private func performReplaceAll(target: String, replacement: String) {
-        guard !target.isEmpty, let tab = viewModel.activeTab else { return }
-        let currentText = tab.text
-        let newText: String
-        if viewModel.isCaseSensitive {
-            newText = currentText.replacingOccurrences(of: target, with: replacement)
-        } else {
-            newText = currentText.replacingOccurrences(of: target, with: replacement, options: .caseInsensitive)
+        guard !target.isEmpty,
+              let window = NSApplication.shared.keyWindow,
+              let textView = findMainDocumentTextView(in: window.contentView),
+              let tab = viewModel.activeTab else {
+            return
         }
-        tab.text = newText
+        
+        let options: NSString.CompareOptions = viewModel.isCaseSensitive ? [] : [.caseInsensitive]
+        var count = 0
+        var searchLocation = 0
+        
+        textView.undoManager?.beginUndoGrouping()
+        
+        while searchLocation < (textView.string as NSString).length {
+            let currentFullText = textView.string as NSString
+            let remainingRange = NSRange(location: searchLocation, length: currentFullText.length - searchLocation)
+            let foundRange = currentFullText.range(of: target, options: options, range: remainingRange)
+            
+            if foundRange.location == NSNotFound {
+                break
+            }
+            
+            if textView.shouldChangeText(in: foundRange, replacementString: replacement) {
+                textView.replaceCharacters(in: foundRange, with: replacement)
+                count += 1
+                searchLocation = foundRange.location + (replacement as NSString).length
+            } else {
+                break
+            }
+        }
+        
+        if count > 0 {
+            textView.didChangeText()
+            tab.text = textView.string
+            tab.attributedText = NSAttributedString(attributedString: textView.attributedString())
+        } else {
+            NSSound.beep()
+        }
+        
+        textView.undoManager?.endUndoGrouping()
     }
     
-    private func findFirstTextView(in view: NSView?) -> NSTextView? {
+    private func findMainDocumentTextView(in view: NSView?) -> NSTextView? {
         guard let view = view else { return nil }
-        if let tv = view as? NSTextView { return tv }
+        if let tv = view as? NSTextView, !tv.isFieldEditor {
+            return tv
+        }
         for sub in view.subviews {
-            if let tv = findFirstTextView(in: sub) { return tv }
+            if let tv = findMainDocumentTextView(in: sub) {
+                return tv
+            }
         }
         return nil
     }

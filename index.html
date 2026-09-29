@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tchê Notepad v1.1.1 — O Bloco de Notas do Windows 11 no macOS</title>
+  <meta name="description" content="Tchê Notepad é um editor de texto nativo com abas para macOS, trazendo a elegância e produtividade do Bloco de Notas do Windows 11 para o ecossistema Mac.">
+  <meta name="keywords" content="Notepad macOS, Bloco de Notas Windows 11, Swift, SwiftUI, AppKit, Editor de Texto Mac">
+  <meta name="theme-color" content="#0e1117">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #0b0f17;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(0, 120, 212, 0.4);
+      --accent: #0078d4;
+      --accent-glow: rgba(0, 120, 212, 0.25);
+      --accent-light: #38bdf8;
+      --text-main: #f3f4f6;
+      --text-muted: #94a3b8;
+      --win11-dark: #1f1f1f;
+      --win11-toolbar: #282828;
+      --win11-editor: #202020;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Background glow ambient effects */
+    .ambient-glow {
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0, 120, 212, 0.15) 0%, rgba(56, 189, 248, 0.05) 50%, transparent 70%);
+      filter: blur(100px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Header / Navbar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(11, 15, 23, 0.75);
+      border-bottom: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #0078d4, #0284c7);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 120, 212, 0.35);
+    }
+
+    .brand-badge {
+      background: rgba(0, 120, 212, 0.15);
+      color: var(--accent-light);
+      border: 1px solid rgba(0, 120, 212, 0.3);
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-main);
+    }
+
+    .btn-github {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0.55rem 1.1rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-github:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      z-index: 10;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 5rem 1.5rem 3rem;
+      text-align: center;
+    }
+
+    .pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(0, 120, 212, 0.12);
+      border: 1px solid rgba(0, 120, 212, 0.3);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-light);
+      margin-bottom: 1.75rem;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(180deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.6;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 4rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #0078d4, #0284c7);
+      color: #ffffff;
+      padding: 0.85rem 1.75rem;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      box-shadow: 0 8px 24px var(--accent-glow);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 120, 212, 0.4);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      padding: 0.85rem 1.5rem;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-appstore {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #000000;
+      color: #ffffff;
+      padding: 0.65rem 1.4rem;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s ease;
+    }
+
+    .btn-appstore:hover {
+      background: #111111;
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+    }
+
+    .appstore-text {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      line-height: 1.15;
+    }
+
+    .appstore-sub {
+      font-size: 0.65rem;
+      color: #94a3b8;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .appstore-main {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .appstore-card {
+      background: var(--bg-surface);
+      border: 1px solid rgba(0, 120, 212, 0.35);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      text-align: left;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .appstore-card-info h3 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+    }
+
+    .appstore-card-info p {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      max-width: 520px;
+    }
+
+    /* Live Interactive App Demo Mockup */
+    .interactive-demo {
+      position: relative;
+      max-width: 980px;
+      margin: 0 auto;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: var(--win11-dark);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 120, 212, 0.15);
+      overflow: hidden;
+      text-align: left;
+    }
+
+    /* Window Title/Tab Bar */
+    .mock-window-header {
+      background: var(--win11-dark);
+      display: flex;
+      align-items: center;
+      padding: 8px 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    .mock-traffic-lights {
+      display: flex;
+      gap: 7px;
+      padding-right: 18px;
+      align-items: center;
+    }
+
+    .traffic-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .traffic-dot.red { background: #ff5f56; }
+    .traffic-dot.yellow { background: #ffbd2e; }
+    .traffic-dot.green { background: #27c93f; }
+
+    .mock-tabs {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .mock-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 6px 6px 0 0;
+      font-size: 0.82rem;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      border-bottom: none;
+    }
+
+    .mock-tab.active {
+      background: var(--win11-toolbar);
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .tab-close {
+      font-size: 10px;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+    }
+
+    .mock-tab:hover .tab-close {
+      opacity: 1;
+    }
+
+    .mock-new-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 15px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 4px;
+    }
+
+    .mock-new-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+
+    /* Mockup Toolbar */
+    .mock-toolbar {
+      background: var(--win11-toolbar);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.82rem;
+    }
+
+    .mock-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .mock-menu-item {
+      color: #e2e8f0;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      user-select: none;
+      transition: background 0.15s ease;
+    }
+
+    .mock-menu-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .mock-divider {
+      width: 1px;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .mock-format-group {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .mock-tool-btn {
+      background: transparent;
+      border: none;
+      color: #e2e8f0;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      transition: background 0.15s;
+    }
+
+    .mock-tool-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .mock-tool-btn.active {
+      background: rgba(0, 120, 212, 0.3);
+      color: var(--accent-light);
+    }
+
+    /* Mock Editor Area */
+    .mock-editor-area {
+      background: var(--win11-editor);
+      min-height: 280px;
+      padding: 16px 20px;
+      position: relative;
+    }
+
+    .mock-editor-textarea {
+      width: 100%;
+      height: 240px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #f1f5f9;
+      font-family: var(--font-mono);
+      font-size: 0.92rem;
+      line-height: 1.6;
+      resize: none;
+    }
+
+    /* Mock Status Bar */
+    .mock-statusbar {
+      background: var(--win11-dark);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 16px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      user-select: none;
+    }
+
+    .mock-statusbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .mock-statusbar-item {
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+
+    .mock-statusbar-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+
+    /* Features Grid */
+    .features {
+      max-width: 1200px;
+      margin: 6rem auto 3rem;
+      padding: 0 1.5rem;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .section-title h2 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-highlight);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px -10px rgba(0, 120, 212, 0.2);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(0, 120, 212, 0.15);
+      border: 1px solid rgba(0, 120, 212, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      color: var(--accent-light);
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+      color: #ffffff;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Comparison Section */
+    .comparison-section {
+      max-width: 1200px;
+      margin: 6rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .comparison-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .comparison-box {
+        grid-template-columns: 1fr;
+      }
+      .hero h1 {
+        font-size: 2.4rem;
+      }
+    }
+
+    .comp-col h4 {
+      font-size: 1.2rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .comp-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .comp-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .comp-item.new {
+      color: #f1f5f9;
+    }
+
+    .comp-icon-old {
+      color: #ef4444;
+      font-weight: bold;
+    }
+
+    .comp-icon-new {
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    /* Quick Install / Build */
+    .install-section {
+      max-width: 900px;
+      margin: 0 auto 6rem;
+      padding: 0 1.5rem;
+      text-align: center;
+    }
+
+    .terminal-window {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      text-align: left;
+      overflow: hidden;
+      margin-top: 2rem;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+
+    .terminal-header {
+      background: #111827;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .terminal-body {
+      padding: 18px 20px;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: #38bdf8;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+
+    .terminal-comment {
+      color: #64748b;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 3rem 1.5rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--accent-light);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand" id="brand-link">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <span>Tchê Notepad</span>
+        <span class="brand-badge">v1.1.1</span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#features">Recursos</a></li>
+          <li><a href="#demo">Demonstração</a></li>
+          <li><a href="#comparativo">Novidades</a></li>
+          <li><a href="#instalar">Instalação</a></li>
+        </ul>
+      </nav>
+
+      <a href="https://github.com/wagnervielmond/TcheNotepad" target="_blank" rel="noopener noreferrer" class="btn-github" id="github-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path>
+        </svg>
+        GitHub
+      </a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero">
+      <div class="pill-tag">
+        <span>✨</span> Versão 1.1.1 Disponível com Zoom Nativo e Abas Fluent
+      </div>
+      <h1>O Bloco de Notas do Windows 11<br>Reimaginado para o Mac.</h1>
+      <p>
+        Tchê Notepad combina a produtividade objetiva e o design moderno do Windows 11 Fluent com o desempenho nativo e a elegância do macOS.
+      </p>
+
+      <div class="hero-actions">
+        <a href="https://apps.apple.com/search?term=Tch%C3%AANotepad" target="_blank" rel="noopener noreferrer" class="btn-appstore" id="btn-appstore-hero" title="Baixar na Mac App Store pesquisando por TchêNotepad">
+          <svg width="22" height="26" viewBox="0 0 170 170" fill="currentColor">
+            <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.6-7.77-11.7-14.2-5.74-9.03-10.19-19.33-13.33-30.89-3.14-11.56-4.71-22.38-4.71-32.48 0-14.37 3.59-26.17 10.78-35.4 7.18-9.23 16.14-13.97 26.88-14.22 5.03 0 10.51 1.34 16.44 4.02 5.93 2.68 9.77 4.07 11.51 4.16 1.48-.1 5.37-1.57 11.66-4.41 6.3-2.85 11.83-4.14 16.6-3.87 12.33.63 22.19 5.36 29.58 14.2-10.76 6.53-16.03 15.54-15.82 27.05.21 9.04 3.7 16.54 10.47 22.5 6.77 5.97 14.54 9.4 23.33 10.29-1.92 6.03-4.37 12.18-7.36 18.44zm-37.19-106.6c.07 3.51-1.12 7.02-3.57 10.53-2.45 3.51-5.78 6.44-9.99 8.79-2.85 1.58-5.83 2.64-8.94 3.18-3.11.54-5.69.45-7.74-.27-.14-3.41 1.05-6.84 3.57-10.28 2.52-3.44 5.92-6.39 10.2-8.85 2.72-1.56 5.62-2.65 8.7-3.26 3.08-.61 5.67-.55 7.77.16z"></path>
+          </svg>
+          <div class="appstore-text">
+            <span class="appstore-sub">Disponível na</span>
+            <span class="appstore-main">Mac App Store</span>
+          </div>
+        </a>
+        <a href="#demo" class="btn-primary" id="btn-test-now">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          Experimentar Demonstração
+        </a>
+        <a href="https://github.com/wagnervielmond/TcheNotepad" target="_blank" rel="noopener noreferrer" class="btn-secondary" id="btn-view-code">
+          Ver Código Fonte
+        </a>
+      </div>
+
+      <!-- Live Interactive Simulator -->
+      <div class="interactive-demo" id="demo">
+        <div class="mock-window-header">
+          <div class="mock-traffic-lights">
+            <div class="traffic-dot red"></div>
+            <div class="traffic-dot yellow"></div>
+            <div class="traffic-dot green"></div>
+          </div>
+
+          <div class="mock-tabs" id="demo-tabs">
+            <div class="mock-tab active" data-tab="1" onclick="switchDemoTab(1)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+              <span>Notas do Dia.txt</span>
+              <span class="tab-close">✕</span>
+            </div>
+            <div class="mock-tab" data-tab="2" onclick="switchDemoTab(2)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+              <span>Ideias_Projeto.md</span>
+              <span class="tab-close">✕</span>
+            </div>
+            <button class="mock-new-tab-btn" onclick="addDemoTab()" title="Nova Guia">+</button>
+          </div>
+        </div>
+
+        <div class="mock-toolbar">
+          <div class="mock-toolbar-left">
+            <span class="mock-menu-item" onclick="triggerToast('Menu Arquivo: Nova Guia, Abrir, Salvar, Configurações')">Arquivo</span>
+            <span class="mock-menu-item" onclick="triggerToast('Menu Editar: Desfazer, Refazer, Copiar, Colar, Localizar')">Editar</span>
+            <span class="mock-menu-item" onclick="triggerToast('Menu Exibir: Zoom In/Out, Quebra de Linha')">Exibir</span>
+
+            <div class="mock-divider"></div>
+
+            <div class="mock-format-group">
+              <button class="mock-tool-btn" onclick="formatDemo('h1')"><strong>H1</strong> ⌄</button>
+              <button class="mock-tool-btn" onclick="formatDemo('bold')" title="Negrito"><strong>B</strong></button>
+              <button class="mock-tool-btn" onclick="formatDemo('italic')" title="Itálico"><em>I</em></button>
+              <button class="mock-tool-btn" onclick="formatDemo('strike')" title="Sobretaxado"><del>S</del></button>
+              <button class="mock-tool-btn" onclick="formatDemo('list')" title="Lista">• ⌄</button>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="mock-tool-btn" onclick="zoomDemo(-10)" title="Menos Zoom">-</button>
+            <span id="demo-zoom-indicator" style="font-size:0.75rem; color:#94a3b8;">100%</span>
+            <button class="mock-tool-btn" onclick="zoomDemo(10)" title="Mais Zoom">+</button>
+          </div>
+        </div>
+
+        <div class="mock-editor-area">
+          <textarea class="mock-editor-textarea" id="demo-textarea" oninput="updateMetrics()"># Bem-vindo ao Tchê Notepad v1.1.1 🚀
+
+O editor de texto veloz para macOS com o visual impecável do Windows 11.
+
+- Suporte completo a abas nativas
+- Menus planos integrados na janela
+- Formatação visual: Negrito, Itálico, Sobretaxado e Títulos
+- Zoom nativo fluido e barra de status em tempo real!
+
+Experimente digitar ou formatar este texto!</textarea>
+        </div>
+
+        <div class="mock-statusbar">
+          <div style="display:flex; gap:16px;">
+            <span id="demo-ln-col">Ln 1, Col 1</span>
+            <span id="demo-char-count">287 caracteres</span>
+          </div>
+
+          <div class="mock-statusbar-right">
+            <span class="mock-statusbar-item" id="demo-zoom-status" onclick="zoomDemo(0)">100%</span>
+            <span class="mock-statusbar-item" onclick="toggleLineEnding()">Windows (CRLF)</span>
+            <span class="mock-statusbar-item">UTF-8</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+      <div class="section-title">
+        <h2>Poderoso. Leve. Elegante.</h2>
+        <p>Projetado do zero em Swift e SwiftUI para uma experiência fluida no macOS.</p>
+      </div>
+
+      <div class="grid-3">
+        <!-- Feature 1 -->
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+          </div>
+          <h3>Sistema de Abas Multi-Documento</h3>
+          <p>Gerencie vários arquivos na mesma janela sem poluição visual. Cada aba mantém histórico isolado de Undo/Redo e alerta para alterações não salvas.</p>
+        </article>
+
+        <!-- Feature 2 -->
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 7V4h16v3M9 20h6M12 4v16"></path>
+            </svg>
+          </div>
+          <h3>Formatação Visual Completa</h3>
+          <p>Destaque títulos (H1, H2, H3), aplique Negrito, Itálico, Sobretaxado, tabelas e listas organizadas com renderização em tempo de digitação.</p>
+        </article>
+
+        <!-- Feature 3 -->
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="11" y1="8" x2="11" y2="14"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+          </div>
+          <h3>Zoom Nativo com Magnificação</h3>
+          <p>Aumente ou diminua o zoom de 30% a 300% com extrema nitidez, seja por atalhos (⌘+ e ⌘-), na barra de status ou pelo gesto de pinça no trackpad.</p>
+        </article>
+
+        <!-- Feature 4 -->
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <line x1="6" y1="8" x2="6" y2="8"></line>
+              <line x1="10" y1="8" x2="18" y2="8"></line>
+              <line x1="6" y1="12" x2="18" y2="12"></line>
+              <line x1="6" y1="16" x2="12" y2="16"></line>
+            </svg>
+          </div>
+          <h3>Barra de Status Informativa</h3>
+          <p>Monitore Linha e Coluna em tempo real, caracteres totais ou selecionados, nível de zoom, codificação UTF-8 e conversão instantânea CRLF/LF.</p>
+        </article>
+
+        <!-- Feature 5 -->
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </div>
+          <h3>Design Fluent Dark & Light</h3>
+          <p>Cantos suaves, menus planos, superfícies neutras sem excesso de brilho e suporte completo ao tema claro ou escuro do macOS.</p>
+        </article>
+
+        <!-- Feature 6 -->
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </div>
+          <h3>Acentuação e Teclas Mortas Estáveis</h3>
+          <p>Compatibilidade total com teclados ABNT2, US-International e caracteres especiais (ã, é, ç, ^, ~) sem quebras ou travamentos de composição.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Comparison Section -->
+    <section class="comparison-section" id="comparativo">
+      <div class="section-title">
+        <h2>Evolução da Versão 1.1.1</h2>
+        <p>Veja como o Tchê Notepad se transformou em uma ferramenta moderna e completa.</p>
+      </div>
+
+      <div class="comparison-box">
+        <div class="comp-col">
+          <h4><span class="comp-icon-old">✕</span> Versão Anterior (v1.0.6)</h4>
+          <ul class="comp-list">
+            <li class="comp-item"><span class="comp-icon-old">•</span> Janela única: abrir novo arquivo criava uma janela inteira separada.</li>
+            <li class="comp-item"><span class="comp-icon-old">•</span> Sem barra de abas nem menus inline integrados.</li>
+            <li class="comp-item"><span class="comp-icon-old">•</span> Sem barra de status com linha, coluna ou contagem de caracteres.</li>
+            <li class="comp-item"><span class="comp-icon-old">•</span> Apenas texto puro estático sem formatação de títulos.</li>
+            <li class="comp-item"><span class="comp-icon-old">•</span> Sem controle de zoom ou fim de linha CRLF/LF.</li>
+          </ul>
+        </div>
+
+        <div class="comp-col">
+          <h4><span class="comp-icon-new">✓</span> Nova Versão (v1.1.1)</h4>
+          <ul class="comp-list">
+            <li class="comp-item new"><span class="comp-icon-new">•</span> Interface multi-abas inspirada no Windows 11 com botão nova guia (+).</li>
+            <li class="comp-item new"><span class="comp-icon-new">•</span> Menus inline planos (Arquivo, Editar, Exibir) integrados à janela.</li>
+            <li class="comp-item new"><span class="comp-icon-new">•</span> Barra de status completa: Ln, Col, Caracteres, Zoom e CRLF/LF.</li>
+            <li class="comp-item new"><span class="comp-icon-new">•</span> Formatação visual real: Títulos H1/H2/H3, Negrito, Itálico e Riscado.</li>
+            <li class="comp-item new"><span class="comp-icon-new">•</span> Zoom nativo fluido de 30% a 300% com suporte a pinch no trackpad.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation / Build Section -->
+    <section class="install-section" id="instalar">
+      <div class="section-title">
+        <h2>Como Obter o Tchê Notepad</h2>
+        <p>Escolha a opção ideal para instalar e usar no seu Mac.</p>
+      </div>
+
+      <!-- App Store Card -->
+      <div class="appstore-card">
+        <div class="appstore-card-info">
+          <h3>Baixar na Mac App Store</h3>
+          <p>
+            Abra o aplicativo da <strong>Mac App Store</strong> no seu Mac e pesquise por <strong>TchêNotepad</strong> para instalar com um clique e receber atualizações automáticas oficiais da Apple.
+          </p>
+        </div>
+        <a href="https://apps.apple.com/search?term=Tch%C3%AANotepad" target="_blank" rel="noopener noreferrer" class="btn-appstore" id="btn-appstore-install" title="Procurar TchêNotepad na Mac App Store">
+          <svg width="22" height="26" viewBox="0 0 170 170" fill="currentColor">
+            <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.6-7.77-11.7-14.2-5.74-9.03-10.19-19.33-13.33-30.89-3.14-11.56-4.71-22.38-4.71-32.48 0-14.37 3.59-26.17 10.78-35.4 7.18-9.23 16.14-13.97 26.88-14.22 5.03 0 10.51 1.34 16.44 4.02 5.93 2.68 9.77 4.07 11.51 4.16 1.48-.1 5.37-1.57 11.66-4.41 6.3-2.85 11.83-4.14 16.6-3.87 12.33.63 22.19 5.36 29.58 14.2-10.76 6.53-16.03 15.54-15.82 27.05.21 9.04 3.7 16.54 10.47 22.5 6.77 5.97 14.54 9.4 23.33 10.29-1.92 6.03-4.37 12.18-7.36 18.44zm-37.19-106.6c.07 3.51-1.12 7.02-3.57 10.53-2.45 3.51-5.78 6.44-9.99 8.79-2.85 1.58-5.83 2.64-8.94 3.18-3.11.54-5.69.45-7.74-.27-.14-3.41 1.05-6.84 3.57-10.28 2.52-3.44 5.92-6.39 10.2-8.85 2.72-1.56 5.62-2.65 8.7-3.26 3.08-.61 5.67-.55 7.77.16z"></path>
+          </svg>
+          <div class="appstore-text">
+            <span class="appstore-sub">Buscar na</span>
+            <span class="appstore-main">Mac App Store</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <span>Opção 2: Compilação Manual via Código Fonte</span>
+          <span>bash</span>
+        </div>
+        <div class="terminal-body">
+          <p class="terminal-comment"># 1. Clone o repositório oficial</p>
+          <p>git clone https://github.com/wagnervielmond/TcheNotepad.git</p>
+          <br>
+          <p class="terminal-comment"># 2. Acesse a pasta do projeto</p>
+          <p>cd TcheNotepad</p>
+          <br>
+          <p class="terminal-comment"># 3. Abra no Xcode e execute (⌘R) ou compile via CLI</p>
+          <p>xcodebuild -scheme TcheNotepad -destination 'platform=macOS' build</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      Tchê Notepad v1.1.1 &copy; 2026. Desenvolvido com carinho para usuários de macOS.
+      <br>
+      Inspirado na usabilidade do Windows 11 Fluent Design. Código disponível no <a href="https://github.com/wagnervielmond/TcheNotepad" target="_blank" rel="noopener noreferrer">GitHub</a>.
+    </p>
+  </footer>
+
+  <!-- Interactive Demo Script -->
+  <script>
+    let currentZoom = 100;
+    const tabsData = {
+      1: "# Bem-vindo ao Tchê Notepad v1.1.1 🚀\n\nO editor de texto veloz para macOS com o visual impecável do Windows 11.\n\n- Suporte completo a abas nativas\n- Menus planos integrados na janela\n- Formatação visual: Negrito, Itálico, Sobretaxado e Títulos\n- Zoom nativo fluido e barra de status em tempo real!\n\nExperimente digitar ou formatar este texto!",
+      2: "# Ideias de Próximas Features\n\n- [x] Abas estilo Windows 11\n- [x] Zoom com gesto de pinça\n- [x] Suporte a arquivos CRLF e UTF-8\n- [ ] Suporte a temas personalizados\n- [ ] Exportação direta em PDF e HTML"
+    };
+
+    function switchDemoTab(tabId) {
+      document.querySelectorAll('.mock-tab').forEach(t => t.classList.remove('active'));
+      const activeEl = document.querySelector(`.mock-tab[data-tab="${tabId}"]`);
+      if (activeEl) activeEl.classList.add('active');
+
+      const textarea = document.getElementById('demo-textarea');
+      if (tabsData[tabId] !== undefined) {
+        textarea.value = tabsData[tabId];
+      }
+      updateMetrics();
+    }
+
+    function addDemoTab() {
+      const nextId = Object.keys(tabsData).length + 1;
+      tabsData[nextId] = `# Sem título ${nextId}\n\nDigite suas anotações aqui...`;
+      
+      const tabsContainer = document.getElementById('demo-tabs');
+      const newTabBtn = tabsContainer.querySelector('.mock-new-tab-btn');
+      
+      const newTabEl = document.createElement('div');
+      newTabEl.className = 'mock-tab';
+      newTabEl.setAttribute('data-tab', nextId);
+      newTabEl.onclick = () => switchDemoTab(nextId);
+      newTabEl.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+        <span>Sem título ${nextId}.txt</span>
+        <span class="tab-close" onclick="closeDemoTab(event, ${nextId})">✕</span>
+      `;
+      
+      tabsContainer.insertBefore(newTabEl, newTabBtn);
+      switchDemoTab(nextId);
+    }
+
+    function closeDemoTab(e, tabId) {
+      e.stopPropagation();
+      const tabEl = document.querySelector(`.mock-tab[data-tab="${tabId}"]`);
+      if (tabEl) {
+        tabEl.remove();
+        delete tabsData[tabId];
+        const remaining = Object.keys(tabsData);
+        if (remaining.length > 0) {
+          switchDemoTab(remaining[0]);
+        }
+      }
+    }
+
+    function updateMetrics() {
+      const textarea = document.getElementById('demo-textarea');
+      const text = textarea.value;
+      
+      // Contagem de caracteres
+      document.getElementById('demo-char-count').innerText = `${text.length} caracteres`;
+
+      // Linha e Coluna
+      const lines = text.substr(0, textarea.selectionStart).split("\n");
+      const currentLine = lines.length;
+      const currentCol = lines[lines.length - 1].length + 1;
+      document.getElementById('demo-ln-col').innerText = `Ln ${currentLine}, Col ${currentCol}`;
+    }
+
+    function formatDemo(type) {
+      const textarea = document.getElementById('demo-textarea');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selected = textarea.value.substring(start, end);
+
+      let replacement = '';
+      if (type === 'bold') {
+        replacement = `**${selected || 'texto em negrito'}**`;
+      } else if (type === 'italic') {
+        replacement = `*${selected || 'texto em itálico'}*`;
+      } else if (type === 'strike') {
+        replacement = `~~${selected || 'texto sobretaxado'}~~`;
+      } else if (type === 'h1') {
+        replacement = `# ${selected || 'Título Principal'}`;
+      } else if (type === 'list') {
+        replacement = `\n- ${selected || 'Item de lista'}`;
+      }
+
+      textarea.setRangeText(replacement, start, end, 'select');
+      updateMetrics();
+      textarea.focus();
+    }
+
+    function zoomDemo(delta) {
+      if (delta === 0) {
+        currentZoom = 100;
+      } else {
+        currentZoom = Math.max(50, Math.min(200, currentZoom + delta));
+      }
+      
+      const textarea = document.getElementById('demo-textarea');
+      textarea.style.fontSize = `${0.92 * (currentZoom / 100)}rem`;
+      
+      document.getElementById('demo-zoom-indicator').innerText = `${currentZoom}%`;
+      document.getElementById('demo-zoom-status').innerText = `${currentZoom}%`;
+    }
+
+    let isCRLF = true;
+    function toggleLineEnding() {
+      isCRLF = !isCRLF;
+      event.target.innerText = isCRLF ? 'Windows (CRLF)' : 'Unix (LF)';
+    }
+
+    function triggerToast(msg) {
+      alert(`[Tchê Notepad v1.1.1]\n${msg}`);
+    }
+
+    // Inicialização
+    document.getElementById('demo-textarea').addEventListener('keyup', updateMetrics);
+    document.getElementById('demo-textarea').addEventListener('click', updateMetrics);
+    updateMetrics();
+  </script>
+</body>
+</html>
