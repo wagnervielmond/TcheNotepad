@@ -6,307 +6,188 @@
 //
 
 import Cocoa
+import SwiftUI
 
 class ViewController: NSViewController {
 
-    @IBOutlet weak var textView: NSTextView!
+    @IBOutlet weak var textView: NSTextView?
     
-    var textoOriginal: String = ""
-    var fileURL: URL?
-    var fecharAposSalvar = false
+    let viewModel = EditorViewModel()
+    private var hostingView: NSHostingView<Win11NotepadContainerView>?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        textoOriginal = textView.string
-        textView.allowsUndo = true
-        textView.undoManager?.groupsByEvent = true
+        setupSwiftUIContainer()
     }
     
-    // abrir
-    func abrirDiretamente(_ filename: String) {
-        fileURL = URL(fileURLWithPath: filename) // Adicione essa linha
+    override func viewWillAppear() {
+        super.viewWillAppear()
+        setupWindowAppearance()
+    }
+    
+    private func setupWindowAppearance() {
+        guard let window = view.window else { return }
+        window.title = "Tchê Notepad"
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.styleMask.insert(.fullSizeContentView)
+        window.isMovableByWindowBackground = false
+    }
+    
+    private func setupSwiftUIContainer() {
+        textView?.enclosingScrollView?.removeFromSuperview()
         
-        if textoEditado() {
-            abrirNovaJanela(conteudo: lerArquivo(caminho: filename))
-        } else {
-            textView.string = lerArquivo(caminho: filename)
-            textoOriginal = textView.string
+        let container = Win11NotepadContainerView(viewModel: viewModel)
+        let host = NSHostingView(rootView: container)
+        host.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(host)
+        
+        NSLayoutConstraint.activate([
+            host.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            host.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            host.topAnchor.constraint(equalTo: view.topAnchor),
+            host.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        
+        self.hostingView = host
+    }
+    
+    // MARK: - Abertura Direta (Finder / Argumentos)
+    
+    func abrirDiretamente(_ filename: String) {
+        let url = URL(fileURLWithPath: filename)
+        viewModel.openFileURL(url)
+    }
+    
+    // MARK: - Controle de Fechamento de Janela
+    
+    func canCloseWindow() -> Bool {
+        let modifiedTabs = viewModel.tabs.filter { $0.isModified }
+        guard !modifiedTabs.isEmpty else { return true }
+        
+        let alert = NSAlert()
+        alert.messageText = "Salvar alterações?"
+        let names = modifiedTabs.map { $0.title }.joined(separator: ", ")
+        alert.informativeText = "Existem guias com alterações não salvas (\(names)). Deseja salvá-las antes de fechar?"
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Salvar Tudo")
+        alert.addButton(withTitle: "Não Salvar")
+        alert.addButton(withTitle: "Cancelar")
+        
+        guard let window = view.window else { return true }
+        
+        alert.beginSheetModal(for: window) { response in
+            switch response {
+            case .alertFirstButtonReturn: // Salvar Tudo
+                self.salvarTodasEFechar(modifiedTabs: modifiedTabs)
+            case .alertSecondButtonReturn: // Não Salvar
+                window.close()
+                NSApp.terminate(self)
+            default: // Cancelar
+                return
+            }
         }
+        return false
+    }
+    
+    private func salvarTodasEFechar(modifiedTabs: [DocumentTab]) {
+        var tabsToSave = modifiedTabs
+        func saveNext() {
+            guard let next = tabsToSave.popLast() else {
+                self.view.window?.close()
+                NSApp.terminate(self)
+                return
+            }
+            self.viewModel.saveTab(next, window: self.view.window) { success in
+                if success {
+                    saveNext()
+                }
+            }
+        }
+        saveNext()
     }
     
     func windowClose(_ sender: Any) {
-        print("windowShouldClose foi chamado")
-        if textoEditado() {
-            let alerta = NSAlert()
-            alerta.messageText = "Salvar alterações?"
-            alerta.informativeText = "Você fez alterações no texto. Deseja salvá-las antes de fechar?"
-            alerta.alertStyle = .warning
-            alerta.addButton(withTitle: "Sim")
-            alerta.addButton(withTitle: "Não")
-            alerta.addButton(withTitle: "Cancelar")
-            
-            alerta.beginSheetModal(for: self.view.window!) { resposta in
-                switch resposta {
-                case .alertFirstButtonReturn: // Sim
-                    self.fecharAposSalvar = true
-                    self.salvarEFechar()
-                case .alertSecondButtonReturn: // Não
-                    NSApp.terminate(self)
-                default: // Cancelar
-                    return
-                }
-            }
-        } else {
+        if canCloseWindow() {
+            view.window?.close()
             NSApp.terminate(self)
         }
     }
+    
+    // MARK: - IBActions integradas aos Menus e AppDelegate
     
     @IBAction func fechar(_ sender: Any) {
-        if textoEditado() {
-            let alerta = NSAlert()
-            alerta.messageText = "Salvar alterações?"
-            alerta.informativeText = "Você fez alterações no texto. Deseja salvá-las antes de fechar?"
-            alerta.alertStyle = .warning
-            alerta.addButton(withTitle: "Sim")
-            alerta.addButton(withTitle: "Não")
-            alerta.addButton(withTitle: "Cancelar")
-            
-            alerta.beginSheetModal(for: self.view.window!) { resposta in
-                switch resposta {
-                case .alertFirstButtonReturn: // Sim
-                    self.fecharAposSalvar = true
-                    self.salvarEFechar()
-                case .alertSecondButtonReturn: // Não
-                    NSApp.terminate(self)
-                default: // Cancelar
-                    return
-                }
-            }
-        } else {
-            NSApp.terminate(self)
+        if let activeTab = viewModel.activeTab {
+            viewModel.closeTab(id: activeTab.id, window: view.window)
         }
     }
     
-    func salvarEFechar() {
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.plainText]
-        panel.begin { (result) in
-            if result == .OK {
-                if let fileURL = panel.url, !self.textView.string.isEmpty {
-                    do {
-                        try self.textView.string.write(to: fileURL, atomically: true, encoding: .utf8)
-                        NSApp.terminate(self)
-                    } catch {
-                        print("Erro ao salvar arquivo: \(error.localizedDescription)")
-                    }
-                } else {
-                    print("Texto vazio")
-                }
-            }
-        }
-    }
-
     @IBAction func salvar(_ sender: Any) {
-        if let fileURL = fileURL {
-            do {
-                let texto = textView.string
-                try texto.write(to: fileURL, atomically: true, encoding: .utf8)
-                print("Fechar após salvar:", fecharAposSalvar) // Verificar valor
-                if fecharAposSalvar {
-                    NSApp.terminate(self)
-                    fecharAposSalvar = false // Resetar a variável
-                }
-            } catch {
-                print("Erro ao salvar arquivo: \(error.localizedDescription)")
-            }
-        } else {
-            salvarComo(sender)
-        }
+        viewModel.saveCurrentTab(window: view.window)
     }
     
-    // abrir
-    @IBAction func abrir(_ sender: Any) {
-        let abrirPanel = NSOpenPanel()
-        abrirPanel.canChooseDirectories = false
-        abrirPanel.canChooseFiles = true
-        abrirPanel.allowsMultipleSelection = false
-        
-        if abrirPanel.runModal() == .OK {
-            guard let filePath = abrirPanel.url?.path else { return }
-            fileURL = URL(fileURLWithPath: filePath) // Adicione essa linha
-            
-            if textoEditado() {
-                abrirNovaJanela(conteudo: lerArquivo(caminho: filePath))
-            } else {
-                textView.string = lerArquivo(caminho: filePath)
-                textoOriginal = textView.string
-            }
-        }
-    }
-    
-    func lerArquivo(caminho: String) -> String {
-        do {
-            return try String(contentsOfFile: caminho, encoding: .utf8)
-        } catch {
-            print("Erro ao ler arquivo: \(error)")
-            return ""
-        }
-    }
-
-    func abrirNovaJanela(conteudo: String) {
-        let novaJanela = NSStoryboard(name: "Main", bundle: nil).instantiateController(withIdentifier: "NovaJanela") as! NSWindowController
-        novaJanela.showWindow(nil)
-        
-        // Configura o conteúdo da nova janela
-        let viewController = novaJanela.contentViewController as! ViewController
-        viewController.textView.string = conteudo
-    }
-
-    func textoEditado() -> Bool {
-        return textView.string != textoOriginal
-    }
-    
-    // Salvar Como
     @IBAction func salvarComo(_ sender: Any) {
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [.plainText]
-        panel.begin { (result) in
-            if result == .OK {
-                if let fileURL = panel.url, !self.textView.string.isEmpty {
-                    do {
-                        try self.textView.string.write(to: fileURL, atomically: true, encoding: .utf8)
-                        self.fileURL = fileURL // Atualize o fileURL
-                    } catch {
-                        print("Erro ao salvar arquivo: \(error.localizedDescription)")
-                    }
-                } else {
-                    print("Texto vazio")
-                }
-            }
-        }
+        viewModel.saveCurrentTabAs(window: view.window)
+    }
+    
+    @IBAction func abrir(_ sender: Any) {
+        viewModel.openFile(window: view.window)
     }
     
     @IBAction func novo(_ sender: Any) {
+        viewModel.newTab()
+    }
+    
+    func abrirNovaJanela(conteudo: String = "") {
         let novaJanela = NSStoryboard(name: "Main", bundle: nil).instantiateController(withIdentifier: "NovaJanela") as! NSWindowController
-        print("Nova janela instanciada: \(novaJanela)")
         novaJanela.showWindow(nil)
+        if let vc = novaJanela.contentViewController as? ViewController, !conteudo.isEmpty {
+            vc.viewModel.tabs.first?.text = conteudo
+        }
     }
 
     @IBAction func selecionarTudo(_ sender: Any) {
-        textView.selectAll(sender)
+        NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
     }
     
-    // Imprimir
     @IBAction func imprimir(_ sender: Any) {
-        let printOperation = NSPrintOperation(view: self.textView)
-        printOperation.run()
+        if let window = view.window,
+           let currentTextView = window.firstResponder as? NSTextView ?? findFirstTextView(in: view) {
+            let printOperation = NSPrintOperation(view: currentTextView)
+            printOperation.run()
+        }
     }
 
-    // Recortar
     @IBAction func recortar(_ sender: Any) {
-        textView.cut(nil)
+        NSApp.sendAction(#selector(NSText.cut(_:)), to: nil, from: nil)
     }
 
-    // Copiar
     @IBAction func copiar(_ sender: Any) {
-        textView.copy(nil)
+        NSApp.sendAction(#selector(NSText.copy(_:)), to: nil, from: nil)
     }
 
-    // Colar
     @IBAction func colar(_ sender: Any) {
-        textView.paste(nil)
+        NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: nil)
     }
     
-    // Encontrar
     @IBAction func encontrar(_ sender: Any) {
-        let encontrarPanel = NSAlert.init()
-        encontrarPanel.messageText = "Pesquisar"
-        encontrarPanel.informativeText = "Digite o texto desejado"
-        
-        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
-        encontrarPanel.accessoryView = textField
-        
-        encontrarPanel.addButton(withTitle: "OK") // Adiciona botão OK
-        encontrarPanel.addButton(withTitle: "Cancelar") // Adiciona botão Cancelar
-        
-        encontrarPanel.beginSheetModal(for: self.view.window!) { resposta in
-            if resposta == .alertFirstButtonReturn { // Verifica se o botão OK foi pressionado
-                print("resposta: \(resposta)")
-                let palavra = textField.stringValue
-                print("palavra: \(palavra)")
-                if !palavra.isEmpty {
-                    self.encontrarPalavra(palavra)
-                } else {
-                    print("Digite uma palavra para buscar")
-                }
-            }
-        }
+        viewModel.showFindBar.toggle()
     }
     
-    func encontrarPalavra(_ palavra: String) {
-        DispatchQueue.main.async {
-            let texto = self.textView.string
-            if let range = texto.range(of: palavra, options: .caseInsensitive) {
-                let nsRange = NSRange(range, in: texto)
-                self.textView.scrollRangeToVisible(nsRange)
-                self.textView.selectedRange = nsRange
-                
-                print("nsRange: \(nsRange)")
-            } else {
-                let alerta = NSAlert()
-                alerta.messageText = "Palavra não encontrada"
-                alerta.informativeText = "A palavra '\(palavra)' não foi encontrada no texto"
-                alerta.alertStyle = .warning
-                alerta.beginSheetModal(for: self.view.window!)
-            }
-        }
-    }
-    
-    // Desfazer
     @IBAction func desfazer(_ sender: Any) {
-        print("Desfazer chamado")
-        self.textView.undoManager?.undo()
+        viewModel.activeTab?.undoManager.undo()
     }
 
-    // Refazer
     @IBAction func refazer(_ sender: Any) {
-        print("Refazer chamado")
-        self.textView.undoManager?.redo()
+        viewModel.activeTab?.undoManager.redo()
     }
     
-}
-
-class LineNumberTextView: NSTextView {
-    
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        
-        // Ajusta o inset do texto para evitar sobreposição com a numeração
-        self.textContainerInset = NSMakeSize(15, self.textContainerInset.height)
-    }
-
-    override func drawBackground(in rect: NSRect) {
-        super.drawBackground(in: rect)
-
-        // Configuração da fonte e cor da numeração
-        let font = NSFont.monospacedSystemFont(ofSize: 10, weight: .regular)
-        let color = NSColor.gray
-        let lineHeight: CGFloat = 14.0
-
-        // Calcula o número de linhas com base na altura do texto
-        let numberOfLines = Int((self.bounds.height - self.textContainerInset.height) / lineHeight)
-
-        // Desenha a numeração das linhas
-        for i in 0..<numberOfLines {
-            let lineNumberString = "\(i + 1)"
-            let attribString = NSAttributedString(string: lineNumberString, attributes: [.font: font, .foregroundColor: color])
-            
-            // Calcula a posição y para desenhar a numeração das linhas
-            let yPosition = self.textContainerInset.height + CGFloat(i) * lineHeight
-            
-            // Desenha a numeração das linhas
-            attribString.draw(in: NSRect(x: 0, y: Int(yPosition), width: 30, height: Int(lineHeight)))
+    private func findFirstTextView(in view: NSView?) -> NSTextView? {
+        guard let view = view else { return nil }
+        if let tv = view as? NSTextView { return tv }
+        for sub in view.subviews {
+            if let tv = findFirstTextView(in: sub) { return tv }
         }
+        return nil
     }
 }
