@@ -184,7 +184,7 @@ class ViewController: NSViewController {
     
     private func findFirstTextView(in view: NSView?) -> NSTextView? {
         guard let view = view else { return nil }
-        if let tv = view as? NSTextView { return tv }
+        if let tv = view as? NSTextView, !tv.isFieldEditor { return tv }
         for sub in view.subviews {
             if let tv = findFirstTextView(in: sub) { return tv }
         }
