@@ -12,7 +12,6 @@ struct Win11EditorView: NSViewRepresentable {
     @ObservedObject var tab: DocumentTab
     @ObservedObject var viewModel: EditorViewModel
     
-    // Referência do Coordinator para invocar ações
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
@@ -25,9 +24,23 @@ struct Win11EditorView: NSViewRepresentable {
         scrollView.borderType = .noBorder
         scrollView.drawsBackground = false
         
+        // Habilita Zoom / Magnificação nativa do macOS
+        scrollView.allowsMagnification = true
+        scrollView.minMagnification = 0.3
+        scrollView.maxMagnification = 3.0
+        scrollView.magnification = max(0.3, min(3.0, CGFloat(viewModel.zoomPercentage) / 100.0))
+        
+        // Notificação para quando o usuário fizer pinch-to-zoom com o trackpad
+        NotificationCenter.default.addObserver(
+            context.coordinator,
+            selector: #selector(Coordinator.scrollViewDidMagnify(_:)),
+            name: NSScrollView.didEndLiveMagnifyNotification,
+            object: scrollView
+        )
+        
         let textView = NSTextView()
         textView.delegate = context.coordinator
-        textView.isRichText = false
+        textView.isRichText = true
         textView.allowsUndo = true
         textView.importsGraphics = false
         textView.isAutomaticQuoteSubstitutionEnabled = false
@@ -35,25 +48,28 @@ struct Win11EditorView: NSViewRepresentable {
         textView.isAutomaticTextReplacementEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
         
-        // Insets semelhantes ao Windows 11 Notepad (margem suave e limpa)
+        // Insets semelhantes ao Windows 11 Notepad
         textView.textContainerInset = NSSize(width: 14, height: 12)
         
         // Configurações de Quebra de Linha
         configureWordWrap(textView: textView, isWordWrap: viewModel.isWordWrap, scrollView: scrollView)
         
-        // Fonte inicial
-        let scaledSize = max(8, viewModel.fontSize * CGFloat(viewModel.zoomPercentage) / 100.0)
-        let font = NSFont(name: viewModel.fontFamily, size: scaledSize) ?? NSFont.monospacedSystemFont(ofSize: scaledSize, weight: .regular)
-        textView.font = font
-        
         // Cores
         updateAppearance(textView: textView, colorScheme: viewModel.appTheme.colorScheme)
         
-        // Texto inicial
-        textView.string = tab.text
+        // Fonte inicial padrão
+        let defaultFont = NSFont(name: viewModel.fontFamily, size: viewModel.fontSize) ?? NSFont.systemFont(ofSize: viewModel.fontSize)
+        
+        if let attr = tab.attributedText {
+            textView.textStorage?.setAttributedString(attr)
+        } else {
+            textView.string = tab.text
+            textView.font = defaultFont
+        }
         
         scrollView.documentView = textView
         context.coordinator.textView = textView
+        context.coordinator.scrollView = scrollView
         
         return scrollView
     }
@@ -64,25 +80,29 @@ struct Win11EditorView: NSViewRepresentable {
         // Atualiza a referência de Coordinator
         context.coordinator.parent = self
         
-        // Atualiza o texto apenas se houver diferença externa para evitar reset de cursor
-        if textView.string != tab.text {
-            let selectedRanges = textView.selectedRanges
-            textView.string = tab.text
-            textView.selectedRanges = selectedRanges
+        // MARK: - 1. Zoom Nativo do ScrollView
+        let targetMagnification = max(0.3, min(3.0, CGFloat(viewModel.zoomPercentage) / 100.0))
+        if abs(scrollView.magnification - targetMagnification) > 0.01 {
+            scrollView.setMagnification(targetMagnification, centeredAt: NSPoint(x: scrollView.bounds.midX, y: scrollView.bounds.midY))
         }
         
-        // Atualiza fonte com base no zoom e tamanho configurado
-        let scaledSize = max(8, viewModel.fontSize * CGFloat(viewModel.zoomPercentage) / 100.0)
-        let currentFont = textView.font
-        let newFont = NSFont(name: viewModel.fontFamily, size: scaledSize) ?? NSFont.monospacedSystemFont(ofSize: scaledSize, weight: .regular)
-        if currentFont?.pointSize != scaledSize || currentFont?.fontName != newFont.fontName {
-            textView.font = newFont
+        // MARK: - 2. Atualização de Texto (apenas se não estiver digitando nem compondo acento)
+        if !context.coordinator.isUserTyping && !textView.hasMarkedText() {
+            if textView.string != tab.text {
+                let selectedRanges = textView.selectedRanges
+                if let attr = tab.attributedText {
+                    textView.textStorage?.setAttributedString(attr)
+                } else {
+                    textView.string = tab.text
+                }
+                textView.selectedRanges = selectedRanges
+            }
         }
         
-        // Atualiza quebra de linha
+        // MARK: - 3. Quebra de Linha
         configureWordWrap(textView: textView, isWordWrap: viewModel.isWordWrap, scrollView: scrollView)
         
-        // Atualiza Cores de Fundo / Texto
+        // MARK: - 4. Cores de Tema
         updateAppearance(textView: textView, colorScheme: viewModel.appTheme.colorScheme)
     }
     
@@ -119,17 +139,38 @@ struct Win11EditorView: NSViewRepresentable {
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: Win11EditorView
         weak var textView: NSTextView?
+        weak var scrollView: NSScrollView?
+        var isUserTyping = false
         
         init(_ parent: Win11EditorView) {
             self.parent = parent
         }
         
+        deinit {
+            NotificationCenter.default.removeObserver(self)
+        }
+        
+        @objc func scrollViewDidMagnify(_ notification: Notification) {
+            guard let sv = notification.object as? NSScrollView else { return }
+            let percent = Int(round(sv.magnification * 100))
+            if parent.viewModel.zoomPercentage != percent {
+                DispatchQueue.main.async {
+                    self.parent.viewModel.zoomPercentage = percent
+                }
+            }
+        }
+        
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? NSTextView else { return }
+            isUserTyping = true
             let newText = textView.string
+            let newAttr = NSAttributedString(attributedString: textView.attributedString())
+            
             DispatchQueue.main.async {
                 self.parent.tab.text = newText
+                self.parent.tab.attributedText = newAttr
                 self.updateCursorMetrics(textView: textView)
+                self.isUserTyping = false
             }
         }
         

@@ -92,6 +92,11 @@ struct Win11ToolbarView: View {
                         NSPasteboard.general.setString(dateString, forType: .string)
                         NSApp.sendAction(#selector(NSText.paste(_:)), to: nil, from: nil)
                     }
+                    Divider()
+                    Button("Emojis e Símbolos…") {
+                        NSApp.orderFrontCharacterPalette(nil)
+                    }
+                    .keyboardShortcut(" ", modifiers: [.command, .control])
                 } label: {
                     Win11MenuTextLabel(title: "Editar")
                 }
@@ -129,9 +134,11 @@ struct Win11ToolbarView: View {
             HStack(spacing: 2) {
                 // Dropdown H1
                 Menu {
-                    Button("Título 1 (#)") { onFormatAction?(.heading1) }
-                    Button("Título 2 (##)") { onFormatAction?(.heading2) }
-                    Button("Título 3 (###)") { onFormatAction?(.heading3) }
+                    Button("Título 1 (H1)") { onFormatAction?(.heading1) }
+                    Button("Título 2 (H2)") { onFormatAction?(.heading2) }
+                    Button("Título 3 (H3)") { onFormatAction?(.heading3) }
+                    Divider()
+                    Button("Texto Normal (Parágrafo)") { onFormatAction?(.normalText) }
                 } label: {
                     Win11DropdownButtonLabel(title: "H1")
                 }

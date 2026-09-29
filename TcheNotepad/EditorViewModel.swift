@@ -13,6 +13,7 @@ enum FormattingType {
     case heading1
     case heading2
     case heading3
+    case normalText
     case bulletList
     case numberList
     case checkList

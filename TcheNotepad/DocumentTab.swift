@@ -54,6 +54,7 @@ class DocumentTab: Identifiable, ObservableObject {
     }
     @Published var savedContent: String
     @Published var isModified: Bool = false
+    var attributedText: NSAttributedString? = nil
     
     // Status metrics
     @Published var cursorLine: Int = 1
