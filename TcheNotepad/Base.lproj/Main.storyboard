@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="22505" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+    <dependencies>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="22505"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Application-->
+        <scene sceneID="JPo-4y-FX3">
+            <objects>
+                <application id="hnw-xV-0zn" sceneMemberID="viewController">
+                    <menu key="mainMenu" title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
+                        <items>
+                            <menuItem title="TcheNotepad" id="1Xt-HY-uBw">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="TcheNotepad" systemMenu="apple" id="uQy-DD-JDr">
+                                    <items>
+                                        <menuItem title="About TcheNotepad" id="5kV-Vb-QxS">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="orderFrontStandardAboutPanel:" target="Ady-hI-5gd" id="Exp-CZ-Vem"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="VOq-y0-SEH"/>
+                                        <menuItem title="Preferences…" keyEquivalent="," id="BOF-NM-1cW"/>
+                                        <menuItem isSeparatorItem="YES" id="wFC-TO-SCJ"/>
+                                        <menuItem title="Services" id="NMo-om-nkz">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Services" systemMenu="services" id="hz9-B4-Xy5"/>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="4je-JR-u6R"/>
+                                        <menuItem title="Hide TcheNotepad" keyEquivalent="h" id="Olw-nP-bQN">
+                                            <connections>
+                                                <action selector="hide:" target="Ady-hI-5gd" id="PnN-Uc-m68"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Hide Others" keyEquivalent="h" id="Vdr-fp-XzO">
+                                            <modifierMask key="keyEquivalentModifierMask" option="YES" command="YES"/>
+                                            <connections>
+                                                <action selector="hideOtherApplications:" target="Ady-hI-5gd" id="VT4-aY-XCT"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Show All" id="Kd2-mp-pUS">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="unhideAllApplications:" target="Ady-hI-5gd" id="Dhg-Le-xox"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="kCx-OE-vgT"/>
+                                        <menuItem title="Quit TcheNotepad" keyEquivalent="q" id="4sb-4s-VLi">
+                                            <connections>
+                                                <action selector="terminate:" target="Ady-hI-5gd" id="Te7-pn-YzF"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="File" id="4GX-il-HTG">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="File" id="HXL-nV-2cv">
+                                    <items>
+                                        <menuItem title="New" keyEquivalent="n" id="bxV-FL-Fdw">
+                                            <connections>
+                                                <action selector="novoMenuItem:" target="Voe-Tx-rLC" id="VK7-5X-fqH"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Open…" keyEquivalent="o" id="rDk-g2-MCn">
+                                            <connections>
+                                                <action selector="abrirMenuItem:" target="Voe-Tx-rLC" id="gsB-W9-jhx"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Open Recent" id="FvZ-Ns-NIr">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <menu key="submenu" title="Open Recent" systemMenu="recentDocuments" id="ab6-xS-wJX">
+                                                <items>
+                                                    <menuItem title="Clear Menu" id="z7y-W4-W15">
+                                                        <connections>
+                                                            <action selector="clearRecentDocuments:" target="Ady-hI-5gd" id="B3i-RJ-gHx"/>
+                                                        </connections>
+                                                    </menuItem>
+                                                </items>
+                                            </menu>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="QLL-M1-qVZ"/>
+                                        <menuItem title="Close" keyEquivalent="w" id="MPA-x9-kZ1">
+                                            <connections>
+                                                <action selector="fecharMenuItem:" target="Voe-Tx-rLC" id="Q7c-CQ-rmS"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Save" keyEquivalent="s" id="bO0-wP-g1b">
+                                            <connections>
+                                                <action selector="salvarMenuItem:" target="Voe-Tx-rLC" id="yEG-hi-o9v"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Save As…" keyEquivalent="S" id="IYW-CB-mjL">
+                                            <connections>
+                                                <action selector="salvarComoMenuItem:" target="Voe-Tx-rLC" id="jjb-7C-D9A"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Revert to Saved" id="zRN-nQ-HWX">
+                                            <modifierMask key="keyEquivalentModifierMask"/>
+                                            <connections>
+                                                <action selector="revertDocumentToSaved:" target="Ady-hI-5gd" id="RVE-Ba-gcj"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="eOG-EB-cBz"/>
+                                        <menuItem title="Page Setup…" keyEquivalent="P" id="Sff-zI-j7p">
+                                            <connections>
+                                                <action selector="runPageLayout:" target="Ady-hI-5gd" id="rpQ-fS-SgA"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Print…" keyEquivalent="p" id="cUA-AG-vbQ">
+                                            <connections>
+                                                <action selector="imprimirMenuItem:" target="Voe-Tx-rLC" id="cKy-aD-lMc"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                            <menuItem title="Edit" id="Mfi-Ma-k4h">
+                                <modifierMask key="keyEquivalentModifierMask"/>
+                                <menu key="submenu" title="Edit" id="DJa-G9-Zj4">
+                                    <items>
+                                        <menuItem title="Undo" keyEquivalent="z" id="gdU-nV-LX2">
+                                            <connections>
+                                                <action selector="undoMenuItem:" target="Voe-Tx-rLC" id="1vP-qe-ABd"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Redo" keyEquivalent="Z" id="OnY-7n-NkH">
+                                            <connections>
+                                                <action selector="redoMenuItem:" target="Voe-Tx-rLC" id="5zb-de-E5x"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="QHn-mD-U3l"/>
+                                        <menuItem title="Cut" keyEquivalent="x" id="6ur-fV-o65">
+                                            <connections>
+                                                <action selector="recortarMenuItem:" target="Voe-Tx-rLC" id="iGV-cq-SJI"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Copy" keyEquivalent="c" id="fxn-6w-Qms">
+                                            <connections>
+                                                <action selector="copiarMenuItem:" target="Voe-Tx-rLC" id="PGq-uD-ikV"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Paste" keyEquivalent="v" id="VFW-36-RbC">
+                                            <connections>
+                                                <action selector="colarMenuItem:" target="Voe-Tx-rLC" id="5vv-83-f2o"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem title="Select All" keyEquivalent="a" id="vsl-nf-cqr">
+                                            <connections>
+                                                <action selector="selecionarTudoMenuItem:" target="Voe-Tx-rLC" id="kpq-Yf-2ZH"/>
+                                            </connections>
+                                        </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="cHc-MA-39K"/>
+                                        <menuItem title="Find" keyEquivalent="f" id="oYA-Bm-L8v">
+                                            <connections>
+                                                <action selector="encontrarMenuItem:" target="Voe-Tx-rLC" id="Kpt-zQ-idB"/>
+                                            </connections>
+                                        </menuItem>
+                                    </items>
+                                </menu>
+                            </menuItem>
+                        </items>
+                    </menu>
+                    <connections>
+                        <outlet property="delegate" destination="Voe-Tx-rLC" id="PrD-fu-P6m"/>
+                    </connections>
+                </application>
+                <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="TcheNotepad" customModuleProvider="target"/>
+                <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
+                <customObject id="Ady-hI-5gd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="75" y="0.0"/>
+        </scene>
+        <!--Window Controller-->
+        <scene sceneID="R2V-B0-nI4">
+            <objects>
+                <windowController storyboardIdentifier="NovaJanela" id="B8D-0N-5wS" sceneMemberID="viewController">
+                    <window key="window" title="Tchê Notepad" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="196" y="240" width="765" height="526"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+                        <connections>
+                            <outlet property="delegate" destination="B8D-0N-5wS" id="98r-iN-zZc"/>
+                        </connections>
+                    </window>
+                    <connections>
+                        <segue destination="XfG-lQ-9wD" kind="relationship" relationship="window.shadowedContentViewController" id="cq2-FE-JQM"/>
+                    </connections>
+                </windowController>
+                <customObject id="Oky-zY-oP4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="217.5" y="378"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="hIz-AP-VOD">
+            <objects>
+                <viewController showSeguePresentationStyle="single" id="XfG-lQ-9wD" customClass="ViewController" customModule="TcheNotepad" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="m2S-Jp-Qdl">
+                        <rect key="frame" x="0.0" y="0.0" width="771" height="372"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <scrollView borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6NV-Aa-EpO">
+                                <rect key="frame" x="0.0" y="0.0" width="771" height="372"/>
+                                <clipView key="contentView" drawsBackground="NO" id="7Lq-L5-lbU">
+                                    <rect key="frame" x="0.0" y="0.0" width="771" height="372"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <textView wantsLayer="YES" importsGraphics="NO" richText="NO" verticallyResizable="YES" findStyle="bar" spellingCorrection="YES" smartInsertDelete="YES" id="CPQ-f3-Doj" customClass="LineNumberTextView" customModule="TcheNotepad" customModuleProvider="target">
+                                            <rect key="frame" x="0.0" y="0.0" width="771" height="372"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                            <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            <size key="minSize" width="771" height="372"/>
+                                            <size key="maxSize" width="852" height="10000000"/>
+                                            <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                        </textView>
+                                    </subviews>
+                                </clipView>
+                                <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="aV4-Xz-W9d">
+                                    <rect key="frame" x="-100" y="-100" width="240" height="16"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                                <scroller key="verticalScroller" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="oXe-Hp-M0C">
+                                    <rect key="frame" x="755" y="0.0" width="16" height="372"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                            </scrollView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="6NV-Aa-EpO" secondAttribute="trailing" id="OyU-J0-L52"/>
+                            <constraint firstAttribute="bottom" secondItem="6NV-Aa-EpO" secondAttribute="bottom" id="pmf-6M-sNp"/>
+                            <constraint firstItem="6NV-Aa-EpO" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" id="sZF-Dn-CcT"/>
+                            <constraint firstItem="6NV-Aa-EpO" firstAttribute="leading" secondItem="m2S-Jp-Qdl" secondAttribute="leading" id="wc7-kK-nh4"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="textView" destination="CPQ-f3-Doj" id="QFe-bo-er9"/>
+                    </connections>
+                </viewController>
+                <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="220.5" y="895"/>
+        </scene>
+    </scenes>
+</document>
