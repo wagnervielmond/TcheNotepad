@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Cocoa
 
 struct Win11NotepadContainerView: View {
     @ObservedObject var viewModel: EditorViewModel
@@ -66,80 +67,192 @@ struct Win11NotepadContainerView: View {
         }
     }
     
-    // MARK: - Manipulação de Formatação
+    // MARK: - Formatação Visual Nativa (Negrito, Itálico, Sobretaxado, etc.)
     
     private func handleFormattingAction(_ type: FormattingType) {
-        guard viewModel.activeTab != nil else { return }
-        
-        // Obter textView ativo
         guard let window = NSApplication.shared.keyWindow,
-              let textView = window.firstResponder as? NSTextView else {
+              let textView = window.firstResponder as? NSTextView ?? findFirstTextView(in: window.contentView),
+              let textStorage = textView.textStorage else {
             return
         }
         
         let range = textView.selectedRange()
-        let text = textView.string as NSString
-        let selectedText = range.length > 0 ? text.substring(with: range) : ""
-        
-        var replacement = ""
-        var newSelectedRange = range
+        let fontManager = NSFontManager.shared
         
         switch type {
-        case .heading1:
-            replacement = "# \(selectedText)"
-        case .heading2:
-            replacement = "## \(selectedText)"
-        case .heading3:
-            replacement = "### \(selectedText)"
-        case .bulletList:
-            replacement = "- \(selectedText)"
-        case .numberList:
-            replacement = "1. \(selectedText)"
-        case .checkList:
-            replacement = "- [ ] \(selectedText)"
         case .bold:
-            if selectedText.isEmpty {
-                replacement = "****"
-                newSelectedRange = NSRange(location: range.location + 2, length: 0)
+            if range.length > 0 {
+                textStorage.beginEditing()
+                textStorage.enumerateAttribute(.font, in: range, options: []) { value, subRange, _ in
+                    let currentFont = (value as? NSFont) ?? textView.font ?? NSFont.systemFont(ofSize: 13)
+                    let isBold = fontManager.traits(of: currentFont).contains(.boldFontMask)
+                    let newFont = isBold ? fontManager.convert(currentFont, toNotHaveTrait: .boldFontMask)
+                                         : fontManager.convert(currentFont, toHaveTrait: .boldFontMask)
+                    textStorage.addAttribute(.font, value: newFont, range: subRange)
+                }
+                textStorage.endEditing()
+                textView.didChangeText()
             } else {
-                replacement = "**\(selectedText)**"
-                newSelectedRange = NSRange(location: range.location, length: replacement.count)
+                var typingAttrs = textView.typingAttributes
+                let currentFont = (typingAttrs[.font] as? NSFont) ?? textView.font ?? NSFont.systemFont(ofSize: 13)
+                let isBold = fontManager.traits(of: currentFont).contains(.boldFontMask)
+                let newFont = isBold ? fontManager.convert(currentFont, toNotHaveTrait: .boldFontMask)
+                                     : fontManager.convert(currentFont, toHaveTrait: .boldFontMask)
+                typingAttrs[.font] = newFont
+                textView.typingAttributes = typingAttrs
             }
+            
         case .italic:
-            if selectedText.isEmpty {
-                replacement = "**"
-                newSelectedRange = NSRange(location: range.location + 1, length: 0)
+            if range.length > 0 {
+                textStorage.beginEditing()
+                textStorage.enumerateAttribute(.font, in: range, options: []) { value, subRange, _ in
+                    let currentFont = (value as? NSFont) ?? textView.font ?? NSFont.systemFont(ofSize: 13)
+                    let isItalic = fontManager.traits(of: currentFont).contains(.italicFontMask)
+                    let newFont = isItalic ? fontManager.convert(currentFont, toNotHaveTrait: .italicFontMask)
+                                           : fontManager.convert(currentFont, toHaveTrait: .italicFontMask)
+                    textStorage.addAttribute(.font, value: newFont, range: subRange)
+                }
+                textStorage.endEditing()
+                textView.didChangeText()
             } else {
-                replacement = "*\(selectedText)*"
-                newSelectedRange = NSRange(location: range.location, length: replacement.count)
+                var typingAttrs = textView.typingAttributes
+                let currentFont = (typingAttrs[.font] as? NSFont) ?? textView.font ?? NSFont.systemFont(ofSize: 13)
+                let isItalic = fontManager.traits(of: currentFont).contains(.italicFontMask)
+                let newFont = isItalic ? fontManager.convert(currentFont, toNotHaveTrait: .italicFontMask)
+                                       : fontManager.convert(currentFont, toHaveTrait: .italicFontMask)
+                typingAttrs[.font] = newFont
+                textView.typingAttributes = typingAttrs
             }
+            
         case .strikethrough:
-            if selectedText.isEmpty {
-                replacement = "~~~~"
-                newSelectedRange = NSRange(location: range.location + 2, length: 0)
+            if range.length > 0 {
+                textStorage.beginEditing()
+                let currentStyle = textStorage.attribute(.strikethroughStyle, at: range.location, effectiveRange: nil) as? Int ?? 0
+                let newStyle = (currentStyle == NSUnderlineStyle.single.rawValue) ? 0 : NSUnderlineStyle.single.rawValue
+                textStorage.addAttribute(.strikethroughStyle, value: newStyle, range: range)
+                textStorage.endEditing()
+                textView.didChangeText()
             } else {
-                replacement = "~~\(selectedText)~~"
-                newSelectedRange = NSRange(location: range.location, length: replacement.count)
+                var typingAttrs = textView.typingAttributes
+                let currentStyle = typingAttrs[.strikethroughStyle] as? Int ?? 0
+                typingAttrs[.strikethroughStyle] = (currentStyle == NSUnderlineStyle.single.rawValue) ? 0 : NSUnderlineStyle.single.rawValue
+                textView.typingAttributes = typingAttrs
             }
-        case .code:
-            replacement = "`\(selectedText)`"
-        case .link:
-            let linkTitle = selectedText.isEmpty ? "link" : selectedText
-            replacement = "[\(linkTitle)](https://)"
+            
+        case .heading1, .heading2, .heading3, .normalText:
+            let targetRange: NSRange
+            let fullText = textView.string as NSString
+            if range.length > 0 {
+                targetRange = range
+            } else {
+                targetRange = fullText.lineRange(for: range)
+            }
+            
+            let headingFont: NSFont
+            switch type {
+            case .heading1:
+                headingFont = NSFont.boldSystemFont(ofSize: 26)
+            case .heading2:
+                headingFont = NSFont.boldSystemFont(ofSize: 20)
+            case .heading3:
+                headingFont = NSFont.boldSystemFont(ofSize: 16)
+            case .normalText:
+                headingFont = NSFont(name: viewModel.fontFamily, size: viewModel.fontSize) ?? NSFont.systemFont(ofSize: viewModel.fontSize)
+            default:
+                headingFont = NSFont.systemFont(ofSize: viewModel.fontSize)
+            }
+            
+            if targetRange.length > 0 {
+                textStorage.beginEditing()
+                textStorage.addAttribute(.font, value: headingFont, range: targetRange)
+                if type == .normalText {
+                    textStorage.removeAttribute(.underlineStyle, range: targetRange)
+                    textStorage.removeAttribute(.strikethroughStyle, range: targetRange)
+                }
+                textStorage.endEditing()
+                textView.didChangeText()
+            } else {
+                var typingAttrs = textView.typingAttributes
+                typingAttrs[.font] = headingFont
+                textView.typingAttributes = typingAttrs
+            }
+            
+        case .bulletList:
+            insertLinePrefix("- ", in: textView)
+            
+        case .numberList:
+            insertLinePrefix("1. ", in: textView)
+            
+        case .checkList:
+            insertLinePrefix("- [ ] ", in: textView)
+            
         case .table:
-            replacement = "\n| Cabeçalho 1 | Cabeçalho 2 |\n|---|---|\n| Item 1 | Item 2 |\n"
-        case .uppercase:
-            replacement = selectedText.uppercased()
-        case .lowercase:
-            replacement = selectedText.lowercased()
-        case .capitalize:
-            replacement = selectedText.capitalized
+            let tableTemplate = "\n| Cabeçalho 1 | Cabeçalho 2 |\n|---|---|\n| Item 1 | Item 2 |\n"
+            if textView.shouldChangeText(in: range, replacementString: tableTemplate) {
+                textView.replaceCharacters(in: range, with: tableTemplate)
+                textView.didChangeText()
+            }
+            
+        case .link:
+            if range.length > 0 {
+                textStorage.addAttribute(.link, value: "https://", range: range)
+                textStorage.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: range)
+                textView.didChangeText()
+            } else {
+                let linkTemplate = "[link](https://)"
+                if textView.shouldChangeText(in: range, replacementString: linkTemplate) {
+                    textView.replaceCharacters(in: range, with: linkTemplate)
+                    textView.didChangeText()
+                }
+            }
+            
+        case .uppercase, .lowercase, .capitalize:
+            if range.length > 0 {
+                let text = (textView.string as NSString).substring(with: range)
+                let replaced: String
+                switch type {
+                case .uppercase: replaced = text.uppercased()
+                case .lowercase: replaced = text.lowercased()
+                case .capitalize: replaced = text.capitalized
+                default: replaced = text
+                }
+                if textView.shouldChangeText(in: range, replacementString: replaced) {
+                    textView.replaceCharacters(in: range, with: replaced)
+                    textView.didChangeText()
+                    textView.setSelectedRange(NSRange(location: range.location, length: replaced.count))
+                }
+            }
+        default:
+            break
         }
         
-        if textView.shouldChangeText(in: range, replacementString: replacement) {
-            textView.replaceCharacters(in: range, with: replacement)
+        // Sincroniza estado no DocumentTab
+        if let tab = viewModel.activeTab {
+            tab.text = textView.string
+            tab.attributedText = NSAttributedString(attributedString: textView.attributedString())
+        }
+    }
+    
+    private func insertLinePrefix(_ prefix: String, in textView: NSTextView) {
+        let range = textView.selectedRange()
+        let text = textView.string as NSString
+        let lineRange = text.lineRange(for: range)
+        let lineText = text.substring(with: lineRange)
+        
+        let lines = lineText.components(separatedBy: "\n")
+        let newLines = lines.map { line -> String in
+            if line.isEmpty { return line }
+            if line.hasPrefix(prefix) {
+                return String(line.dropFirst(prefix.count))
+            } else {
+                return prefix + line
+            }
+        }
+        let replacement = newLines.joined(separator: "\n")
+        
+        if textView.shouldChangeText(in: lineRange, replacementString: replacement) {
+            textView.replaceCharacters(in: lineRange, with: replacement)
             textView.didChangeText()
-            textView.setSelectedRange(newSelectedRange)
         }
     }
     

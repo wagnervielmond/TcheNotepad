@@ -137,9 +137,8 @@ struct SettingsSheetView: View {
                             .foregroundColor(Win11Colors.textPrimary(for: colorScheme))
                         
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Tchê Notepad")
-                                .font(.system(size: 13, weight: .medium))
-                            Text("Versão 1.0.6 (Modernizada com estilo Windows 11)")
+                            let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.1.0"
+                            Text("Versão \(version) (Estilo Windows 11)")
                                 .font(.system(size: 11))
                                 .foregroundColor(Win11Colors.textSecondary(for: colorScheme))
                             Text("Editor de texto com abas para macOS.")
